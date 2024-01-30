@@ -7,68 +7,62 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-In the last activity, you might have noticed that I made this Rmd output a document with a type of `github_document` (in the YAML header underneath the title - on line 3) instead of a HTML, Word, or PDF document.
-This produces a GitHub friendly Markdown file that GitHub then renders to HTML.
-You can read more about this output type in RMarkdown's [documentation page](https://rmarkdown.rstudio.com/github_document_format.html) if you want to learn more.
 
 # Day 1
 
 ## Load the necessary packages
 
-I encourage you to continue using the two packages from Posit (formerly [RStudio](https://posit.co/)): `{tidyverse}` and `{tidymodels}`.
-Remember that [Emil Hvitfeldt](https://www.emilhvitfeldt.com/) (of Posit) has put together a [complementary online text](https://emilhvitfeldt.github.io/ISLR-tidymodels-labs/index.html) for the labs in the *ISLR* text that utilize `{tidyverse}` and `{tidymodels}` instead of base R.
-
-- In the **Packages** pane of RStudio, check if `{tidyverse}` and `{tidymodels}` are installed.
-  Be sure to check both your **User Library** and **System Library**.
-- If either of these are not currently listed (they should be because you verified this in Activity 1), type the following in your **Console** pane, replacing `package_name` with the appropriate name, and  press Enter/Return afterwards.
-  
-  ```{r  eval = FALSE}
-  install.packages("package_name")
-  ```
-
-- Once you have verified that both `{tidyverse}` and `{tidymodels}` are installed (in either your user or system library), load these packages in the R chunk below titled `load-packages`.
-  
-- Run the `load-packages` code chunk or **knit** <img src="../README-img/knit-icon.png" alt="knit" width = "20"/> icon your Rmd document to verify that no errors occur.
-
-```{r load-packages}
-library(tidyverse)
-library(tidymodels)
-```
+We use tidyverse and tidymodels.
 
 Since we will be looking at many relationships graphically, it will be nice to not have to code each of these individually.
 `{GGally}` is an extension to `{ggplot2}` that reduces some of the complexities when combining multiple plots.
-For example, [`GGally::ggpairs`](http://ggobi.github.io/ggally/articles/ggpairs.html) is very handy for pairwise comparisons of multiple variables.
 
-- In the **Packages** pane of RStudio, check if `{GGally}` is already installed.
-  Be sure to check both your **User Library** and **System Library**.
-- If this is not currently listed, type the following in your **Console** pane and  press Enter/Return afterwards.
-  
-  ```{r  eval = FALSE}
-  install.packages("GGally")
-  ```
-  
-- Once you have verified that `{GGally}` is installed, load it in the R chunk titled `load-packages`.
-  
-- Run the `setup` code chunk or **knit** <img src="../README-img/knit-icon.png" alt="knit" width = "20"/> icon your Rmd document to verify that no errors occur.
+```{r load-packages message=FALSE}
+library(tidyverse)
+library(tidymodels)
+library(GGally)
+```
 
-## Load the data and
 
-I found a way to upload data from OpenIntro without needing to download it first!
-Recall that data we are working with is from the OpenIntro site (its "about" page: https://www.openintro.org/data/index.php?data=hfi).
-We can access the raw data from their tab-delimited text file link: https://www.openintro.org/data/tab-delimited/hfi.txt.
 
-Create a new R code chunk below that is titled `load-data` and reads in the above linked TSV (tab-separated values) file by doing the following:
+## Load the data
 
-- Rather than downloading this file, uploading to RStudio, then reading it in, explore how to load this file directly from the provided URL with `readr::read_tsv` (`{readr}` is part of `{tidyverse}`).
-- Assign this data set into a data frame named `hfi` (short for "Human Freedom Index").
-- Filter the data `hfi` data frame for year 2016 and assigns the result to an R data object named `hfi_2016`. You will use `hfi_2016` for the remainder of this activity.
+- The workbench is giving problems using data from the web so we will instead download and load them. 
+- We then load the data into hfi dataframe and then filter it to create a new dataframe called hfi_2016 which has data justt for the year 2016. 
+
+
+```{r load-data}
+hfi <- readr::read_tsv("hfi.txt")
+
+hfi_2016 <- hfi[hfi$year == 2016, ]
+
+```
+
 
 We will continue using personal freedom scores, `pf_score`, as the response variable and build on our model that had `pf_expression_control` as the explanatory variable. 
 
-Create a new R code chunk below, with an appropriate title, that does the following:
+We want to explore the relationship between personal freedom score, `pf_score`, the political pressures and controls on media content index,`pf_expression_control` and Religious freedom `pf_religion`. 
 
-- Review the about page of the data set and select at least one additional numeric variables (hint: look for `<dbl>` or `<int>` designations) to describe its distribution. Remember to write your description.
-- You may also wish to do this for `pf_score` and `pf_expression_control` again to help you remember what you noticed last week.
+```{r distribution plot}
+
+# Univariate plot for pf_religion (Histogram)
+hist(hfi_2016$pf_religion, 
+     main = "Distribution of Religious freedom scores (pf_religion)",
+     xlab = "Religious Freedom Score",
+     col = "skyblue",        # Set the color of the bars
+     border = "white",       # Set the color of the bar borders
+     xlim = c(0, 10),        # Set x-axis limits for better clarity
+     breaks = 20)            # Control the number of bins
+
+# vertical line at the mean for better interpretation
+abline(v = mean(hfi_2016$pf_religion, na.rm = TRUE), col = "red", lwd = 4)
+
+
+```
+- The graph is left skewed. 
+
+
+
 
 ## Pairwise relationships
 
@@ -100,9 +94,9 @@ Now, we will obtain graphical and numerical summaries to describe the pairwise r
 - Replace `explanatory` in the `select` line with the variable you identified above
 - Run your code chunk or knit your document.
   
-```{verbatim pairs-plot}
+```{r pairs-plot, warning=FALSE}
 hfi_2016 %>% 
-  select(pf_score, pf_expression_control, explanatory) %>% 
+  select(pf_score, pf_expression_control, pf_religion) %>% 
   ggpairs()
 ```
 
@@ -117,6 +111,7 @@ After running the `pairs-plot` code, answer the following questions:
 1. For each pair of variables, how would you describe the relationship graphically?
   Do any of the relationships look linear?
   Are there any interesting/odd features (outliers, non-linear patterns, etc.)?
+  The expression control scores and pf scores seem to be linear. There are outliers in pf_religion data.
 
 2. For each pair of variables, how would you describe the relationship numerically?
 
@@ -137,7 +132,7 @@ $$
 - Replace `explanatory`, similarly to what you did in your `pairs-plot` R code chunk.
 - Run your code chunk or knit your document.
   
-```{verbatim mlr-model}
+```{r mlr-model}
 #fit the mlr model
 lm_spec <- linear_reg() %>%
   set_mode("regression") %>%
@@ -146,7 +141,7 @@ lm_spec <- linear_reg() %>%
 lm_spec
 
 mlr_mod <- lm_spec %>% 
-fit(pf_score ~ pf_expression_control + explanatory, data = hfi_2016)
+fit(pf_score ~ pf_expression_control + pf_religion, data = hfi_2016)
 
 # model output
 tidy(mlr_mod)
@@ -158,7 +153,7 @@ After doing this, answer the following questions:
   Remember in Activity 2 that this looked like:
 
 $$
-\hat{y} = b_0 + b_1 \times x_1
+\hat{y} = 3.4588990 + 0.4692890 \times pf_expression_control + 0.1611585 \times pf_religion
 $$
   
   where $b_0$ and $b_1$ were your model parameter estimates.
@@ -174,6 +169,12 @@ Do some internet sleuthing to minimally produce a 3-D scatterplot (you do not ne
 Ideally, this would be something that plays nicely with (looks similar to) `{ggplot2}`.
 
 - Create a new R code chunk, with a descriptive name, and add your code to create this plot.
+
+```{r 3d scatterplot}
+
+
+
+```
 
 After doing this, respond to the following prompt:
 
