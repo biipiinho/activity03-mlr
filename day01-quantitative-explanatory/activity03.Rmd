@@ -31,7 +31,8 @@ Remember that [Emil Hvitfeldt](https://www.emilhvitfeldt.com/) (of Posit) has pu
 - Run the `load-packages` code chunk or **knit** <img src="../README-img/knit-icon.png" alt="knit" width = "20"/> icon your Rmd document to verify that no errors occur.
 
 ```{r load-packages}
-
+library(tidyverse)
+library(tidymodels)
 ```
 
 Since we will be looking at many relationships graphically, it will be nice to not have to code each of these individually.
